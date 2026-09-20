@@ -21,12 +21,9 @@ def build():
     if os.path.exists(BUILD_DIR):
         shutil.rmtree(BUILD_DIR, ignore_errors=True)
 
-    pyinstaller_bin = os.path.join(os.path.dirname(sys.executable), "pyinstaller")
-    if not os.path.exists(pyinstaller_bin):
-        pyinstaller_bin = "pyinstaller"
-
     pyinstaller_cmd = [
-        pyinstaller_bin,
+        sys.executable,
+        "-m", "PyInstaller",
         "--name=" + APP_NAME,
         "--windowed",
         "--onedir",
