@@ -12,6 +12,7 @@ dist/
 */dist/
 all_platform/*.app/
 all_platform/IDT_Downloader_Windows/
+all_platform/idt-dlp-windows/
 all_platform/*.zip
 all_platform/*_Executable/
 .pyinstaller_cache/
