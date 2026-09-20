@@ -12,9 +12,14 @@ APP_NAME = "IDT_Downloader_Windows"
 
 os.environ["PYINSTALLER_CONFIG_DIR"] = CACHE_DIR
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 def build():
-    print("🚀 Building standalone Windows Application (.exe)...")
+    print("[BUILD] Building standalone Windows Application (.exe)...")
 
     if os.path.exists(DIST_DIR):
         shutil.rmtree(DIST_DIR, ignore_errors=True)
@@ -49,10 +54,11 @@ def build():
 
     if result.returncode == 0:
         exe_path = os.path.join(DIST_DIR, APP_NAME, f"{APP_NAME}.exe")
-        print("\n✨ Windows Build successful!")
-        print(f"📦 Executable folder generated at:\n   {os.path.join(DIST_DIR, APP_NAME)}")
+        print("\n[SUCCESS] Windows Build successful!")
+        print(f"[PACKAGE] Executable folder generated at:\n   {os.path.join(DIST_DIR, APP_NAME)}")
     else:
-        print("\n❌ Build failed with exit code:", result.returncode)
+        print("\n[ERROR] Build failed with exit code:", result.returncode)
+    sys.exit(result.returncode)
 
 
 if __name__ == "__main__":
