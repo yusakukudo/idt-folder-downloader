@@ -60,9 +60,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Build Android APK
         working-directory: ./idt_android_app
         run: |
