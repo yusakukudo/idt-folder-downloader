@@ -16,7 +16,7 @@ class MainWindowWin(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("IDT Audio Downloader — Windows Edition")
+        self.setWindowTitle("idt-dlp")
         self.resize(980, 760)
         self.setMinimumSize(850, 640)
 
@@ -43,12 +43,25 @@ class MainWindowWin(QMainWindow):
         header_frame.setObjectName("headerFrame")
         header_layout = QHBoxLayout(header_frame)
         header_layout.setContentsMargins(18, 14, 18, 14)
+        header_layout.setSpacing(14)
+
+        # App Logo Image & Window Icon
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "icon.png")
+        if not os.path.exists(icon_path):
+            icon_path = os.path.join(os.path.dirname(sys.executable), "icon.png")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
+            from PySide6.QtGui import QPixmap
+            logo_pix = QPixmap(icon_path).scaled(46, 46, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            logo_lbl = QLabel()
+            logo_lbl.setPixmap(logo_pix)
+            header_layout.addWidget(logo_lbl)
 
         title_vbox = QVBoxLayout()
-        header_title = QLabel("🎵 IDT Audio Downloader (Windows)")
+        header_title = QLabel("idt-dlp")
         header_title.setObjectName("headerTitle")
 
-        header_subtitle = QLabel("High-Speed Asynchronous Downloader for ISKCON Desire Tree")
+        header_subtitle = QLabel("High-Speed Audio Folder Downloader for ISKCON Desire Tree")
         header_subtitle.setObjectName("headerSubtitle")
 
         title_vbox.addWidget(header_title)

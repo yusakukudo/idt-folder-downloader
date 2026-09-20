@@ -8,7 +8,7 @@ MAIN_SCRIPT = os.path.join(BASE_DIR, "main.py")
 DIST_DIR = os.path.join(BASE_DIR, "dist")
 BUILD_DIR = os.path.join(BASE_DIR, "build")
 CACHE_DIR = os.path.join(BASE_DIR, ".pyinstaller_cache")
-APP_NAME = "IDT Downloader"
+APP_NAME = "idt-dlp"
 
 os.environ["PYINSTALLER_CONFIG_DIR"] = CACHE_DIR
 
@@ -26,12 +26,17 @@ def build():
     if not os.path.exists(pyinstaller_bin):
         pyinstaller_bin = "pyinstaller"
 
+    icon_icns = os.path.join(BASE_DIR, "icon.icns")
+    icon_png = os.path.join(BASE_DIR, "icon.png")
+
     pyinstaller_cmd = [
         pyinstaller_bin,
         "--name=" + APP_NAME,
         "--windowed",
         "--onedir",
         "--noconfirm",
+        "--icon=" + icon_icns,
+        "--add-data=" + icon_png + ":.",
         "--collect-all", "aiohttp",
         "--collect-all", "bs4",
         "--exclude-module", "PySide6.QtWebEngineCore",

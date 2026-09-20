@@ -1,7 +1,11 @@
 package com.idtdownloader.app.viewmodel
 
 import android.app.Application
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Environment
+import android.provider.DocumentsContract
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.idtdownloader.app.data.DownloadProgressState
@@ -24,6 +28,24 @@ data class FileUiState(
 class DownloadViewModel(application: Application) : AndroidViewModel(application) {
     private val _url = MutableStateFlow("")
     val url: StateFlow<String> = _url.asStateFlow()
+
+    private val defaultDownloadDirectory: String by lazy {
+        val pubDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val candidate = File(pubDir, "IDT_Downloads")
+        if (pubDir != null && (candidate.exists() || candidate.mkdirs() || candidate.canWrite())) {
+            candidate.absolutePath
+        } else {
+            val appExt = getApplication<Application>().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            (appExt ?: File(getApplication<Application>().filesDir, "IDT_Downloads")).absolutePath
+        }
+    }
+
+    private val _saveDirectory = MutableStateFlow("")
+    val saveDirectory: StateFlow<String> = _saveDirectory.asStateFlow()
+
+    init {
+        _saveDirectory.value = defaultDownloadDirectory
+    }
 
     private val _isDarkMode = MutableStateFlow(true)
     val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
@@ -49,6 +71,33 @@ class DownloadViewModel(application: Application) : AndroidViewModel(application
     private var downloader: IDTDownloader? = null
 
     fun setUrl(newUrl: String) { _url.value = newUrl }
+    fun setSaveDirectory(newDir: String) { _saveDirectory.value = newDir }
+
+    fun setCustomDirectoryUri(uri: Uri, context: Context) {
+        try {
+            val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            context.contentResolver.takePersistableUriPermission(uri, flags)
+        } catch (_: Exception) {}
+
+        val resolved = getPathFromTreeUri(uri)
+        val chosen = resolved ?: uri.toString()
+        _saveDirectory.value = chosen
+        addLog("📁 Selected directory: $chosen")
+    }
+
+    private fun getPathFromTreeUri(uri: Uri): String? {
+        val docId = DocumentsContract.getTreeDocumentId(uri) ?: return null
+        val split = docId.split(":")
+        val type = split[0]
+        return if ("primary".equals(type, ignoreCase = true)) {
+            val relativePath = if (split.size > 1) split[1] else ""
+            "${Environment.getExternalStorageDirectory()}/$relativePath".trimEnd('/')
+        } else {
+            val relativePath = if (split.size > 1) split[1] else ""
+            "/storage/$type/$relativePath".trimEnd('/')
+        }
+    }
+
     fun toggleTheme() { _isDarkMode.value = !_isDarkMode.value }
     fun toggleShowLogs() { _showLogs.value = !_showLogs.value }
 
@@ -71,8 +120,16 @@ class DownloadViewModel(application: Application) : AndroidViewModel(application
         addLog("🔍 Scanning IDT website structure...")
 
         viewModelScope.launch {
-            val downloadDir = getApplication<Application>().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                ?: File(getApplication<Application>().filesDir, "IDT_Downloads")
+            val chosenPath = _saveDirectory.value.trim()
+            val downloadDir = if (chosenPath.isNotEmpty()) {
+                val f = File(chosenPath)
+                f.mkdirs()
+                if (f.exists() && f.canWrite()) f else File(defaultDownloadDirectory).apply { mkdirs() }
+            } else {
+                File(defaultDownloadDirectory).apply { mkdirs() }
+            }
+
+            addLog("📁 Destination folder: ${downloadDir.absolutePath}")
 
             val crawler = IDTCrawler(rawUrl, downloadDir)
             val filesList = crawler.crawl { visited, count, lastFile ->

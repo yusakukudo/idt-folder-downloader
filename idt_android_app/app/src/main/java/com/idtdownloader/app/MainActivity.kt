@@ -1,8 +1,12 @@
 package com.idtdownloader.app
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,7 +16,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -54,6 +61,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen(viewModel: DownloadViewModel) {
     val url by viewModel.url.collectAsState()
+    val saveDirectory by viewModel.saveDirectory.collectAsState()
     val isDownloading by viewModel.isDownloading.collectAsState()
     val isPaused by viewModel.isPaused.collectAsState()
     val progressState by viewModel.progressState.collectAsState()
@@ -61,6 +69,15 @@ fun MainScreen(viewModel: DownloadViewModel) {
     val logs by viewModel.logs.collectAsState()
     val showLogs by viewModel.showLogs.collectAsState()
     val isDarkMode by viewModel.isDarkMode.collectAsState()
+    val context = LocalContext.current
+
+    val folderPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            viewModel.setCustomDirectoryUri(uri, context)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -68,7 +85,7 @@ fun MainScreen(viewModel: DownloadViewModel) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Header
+        // ---------------- Header Bar with Logo ----------------
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
@@ -81,18 +98,30 @@ fun MainScreen(viewModel: DownloadViewModel) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "🎵 IDT Audio Downloader",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo),
+                        contentDescription = "idt-dlp Logo",
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(RoundedCornerShape(10.dp))
                     )
-                    Text(
-                        text = "Android Mobile Edition",
-                        fontSize = 12.sp,
-                        color = Color.Gray
-                    )
+                    Column {
+                        Text(
+                            text = "idt-dlp",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Audio Folder Downloader",
+                            fontSize = 12.sp,
+                            color = Color.Gray
+                        )
+                    }
                 }
 
                 IconButton(onClick = { viewModel.toggleTheme() }) {
@@ -101,17 +130,44 @@ fun MainScreen(viewModel: DownloadViewModel) {
             }
         }
 
-        // URL Input
+        // ---------------- URL Input ----------------
         OutlinedTextField(
             value = url,
             onValueChange = { viewModel.setUrl(it) },
             label = { Text("IDT Folder URL") },
             placeholder = { Text("audio.iskcondesiretree.com/...") },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(8.dp)
+            shape = RoundedCornerShape(8.dp),
+            singleLine = true
         )
 
-        // Control Buttons
+        // ---------------- Save Location with Browse Button ----------------
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            OutlinedTextField(
+                value = saveDirectory,
+                onValueChange = { viewModel.setSaveDirectory(it) },
+                label = { Text("Save Location") },
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(8.dp),
+                singleLine = true
+            )
+
+            Button(
+                onClick = { folderPickerLauncher.launch(null) },
+                enabled = !isDownloading,
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp)
+            ) {
+                Text("📁 Browse")
+            }
+        }
+
+        // ---------------- Control Action Buttons ----------------
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -144,7 +200,7 @@ fun MainScreen(viewModel: DownloadViewModel) {
             }
         }
 
-        // Dashboard Metrics
+        // ---------------- Dashboard Metrics ----------------
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -154,7 +210,7 @@ fun MainScreen(viewModel: DownloadViewModel) {
             MetricCard("SPEED", String.format("%.2f MB/s", progressState.speedBps / (1024.0 * 1024.0)), Modifier.weight(1f))
         }
 
-        // Overall Progress Bar
+        // ---------------- Overall Progress Bar ----------------
         val pct = if (progressState.totalFiles > 0) progressState.completedFiles.toFloat() / progressState.totalFiles else 0f
         LinearProgressIndicator(
             progress = { pct },
@@ -164,7 +220,7 @@ fun MainScreen(viewModel: DownloadViewModel) {
             color = Color(0xFF10B981)
         )
 
-        // Queue Header + Log Toggle
+        // ---------------- Queue Header + Log Toggle ----------------
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -176,7 +232,7 @@ fun MainScreen(viewModel: DownloadViewModel) {
             }
         }
 
-        // File Queue List
+        // ---------------- File Queue List ----------------
         LazyColumn(
             modifier = Modifier
                 .weight(1f)
@@ -205,7 +261,7 @@ fun MainScreen(viewModel: DownloadViewModel) {
             }
         }
 
-        // Collapsible Log Console
+        // ---------------- Collapsible Log Console ----------------
         if (showLogs) {
             Card(
                 modifier = Modifier
