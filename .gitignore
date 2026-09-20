@@ -1,0 +1,47 @@
+# Virtual Environments
+venv/
+.venv/
+env/
+*/venv/
+*/.venv/
+
+# Build artifacts & caches
+build/
+dist/
+*/build/
+*/dist/
+all_platform/*.app/
+all_platform/IDT_Downloader_Windows/
+.pyinstaller_cache/
+*/.pyinstaller_cache/
+*.spec
+!idt-dlp-project/idt-dlp/idt-dlp.spec
+__pycache__/
+*/__pycache__/
+*/**/__pycache__/
+*.py[cod]
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Android artifacts
+*.apk
+*.aab
+.gradle/
+*/.gradle/
+local.properties
+.idea/
+*.iml
+
+# Temporary download test directories
+path/
+Bhajans/
+*.part
+*.mp3
+IDT_Downloads/

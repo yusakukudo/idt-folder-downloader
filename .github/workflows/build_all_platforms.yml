@@ -1,0 +1,158 @@
+name: Build All Platforms & Release
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # -------------------------------------------------------------
+  # 1. Build Windows Standalone Executable (.exe)
+  # -------------------------------------------------------------
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PySide6 aiohttp beautifulsoup4 requests pyinstaller
+
+      - name: Build Windows Executable
+        run: |
+          python idt_win_app/build_win_app.py
+
+      - name: Compress Windows Package
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "idt_win_app/dist/IDT_Downloader_Windows/*" -DestinationPath "IDT_Downloader_Windows.zip"
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IDT_Downloader_Windows
+          path: IDT_Downloader_Windows.zip
+
+  # -------------------------------------------------------------
+  # 2. Build Android APK (.apk)
+  # -------------------------------------------------------------
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build Android APK
+        working-directory: ./idt_android_app
+        run: |
+          gradle wrapper
+          ./gradlew assembleDebug
+
+      - name: Copy & Rename APK
+        run: |
+          cp idt_android_app/app/build/outputs/apk/debug/app-debug.apk IDT_Downloader_Android.apk || find . -name "*.apk" -exec cp {} IDT_Downloader_Android.apk \;
+
+      - name: Upload Android Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IDT_Downloader_Android
+          path: IDT_Downloader_Android.apk
+
+  # -------------------------------------------------------------
+  # 3. Build macOS Standalone Application (.app)
+  # -------------------------------------------------------------
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install PySide6 aiohttp beautifulsoup4 requests pyinstaller
+
+      - name: Build macOS App Bundle
+        run: |
+          python idt_mac_app/build_mac_app.py
+
+      - name: Zip macOS App Bundle
+        run: |
+          cd idt_mac_app/dist
+          zip -r "../../IDT_Downloader_macOS.zip" "IDT Downloader.app"
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IDT_Downloader_macOS
+          path: IDT_Downloader_macOS.zip
+
+  # -------------------------------------------------------------
+  # 4. Create Automated GitHub Release with Download Links
+  # -------------------------------------------------------------
+  create-release:
+    needs: [build-windows, build-android, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: IDT_Downloader_Windows
+          path: ./release_assets/
+
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: IDT_Downloader_Android
+          path: ./release_assets/
+
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: IDT_Downloader_macOS
+          path: ./release_assets/
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        with:
+          tag_name: v1.0.0
+          name: "IDT Audio Downloader v1.0.0 (macOS, Windows, Android)"
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            ./release_assets/IDT_Downloader_macOS.zip
+            ./release_assets/IDT_Downloader_Windows.zip
+            ./release_assets/IDT_Downloader_Android.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

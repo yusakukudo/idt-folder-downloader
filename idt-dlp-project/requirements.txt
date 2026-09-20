@@ -1,0 +1,6 @@
+requests
+beautifulsoup4
+tqdm
+aiohttp
+
+idt-dlp "https://audio.iskcondesiretree.com/index.php?q=f&f=%2F02_-_ISKCON_Swamis%2FISKCON_Swamis_-_R_to_Y%2FHis_Holiness_Radhanath_Swami%2FLectures%2F01_-_Theme_wise"
