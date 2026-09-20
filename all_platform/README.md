@@ -4,16 +4,16 @@ This folder contains the complete multi-platform release suite for downloading a
 
 ---
 
-## 🔗 Direct Download Links (GitHub Release v1.0.0)
+## 🔗 Direct Download Links (Latest GitHub Release)
 
 - **GitHub Repository**: [https://github.com/yusakukudo/idt-folder-downloader](https://github.com/yusakukudo/idt-folder-downloader)
-- **Releases Page**: [https://github.com/yusakukudo/idt-folder-downloader/releases/tag/v1.0.0](https://github.com/yusakukudo/idt-folder-downloader/releases/tag/v1.0.0)
+- **Releases Page**: [https://github.com/yusakukudo/idt-folder-downloader/releases/latest](https://github.com/yusakukudo/idt-folder-downloader/releases/latest)
 
 | Platform | File Name | Size | Direct Download Link |
 | :--- | :--- | :--- | :--- |
-| **Android** | `IDT_Downloader_Android.apk` | ~8.2 MB | [Download APK](https://github.com/yusakukudo/idt-folder-downloader/releases/download/v1.0.0/IDT_Downloader_Android.apk) |
-| **Windows** | `IDT_Downloader_Windows.zip` | ~51.8 MB | [Download Windows (.zip with .exe)](https://github.com/yusakukudo/idt-folder-downloader/releases/download/v1.0.0/IDT_Downloader_Windows.zip) |
-| **macOS** | `IDT_Downloader_macOS.zip` | ~191 MB | [Download macOS (.app in .zip)](https://github.com/yusakukudo/idt-folder-downloader/releases/download/v1.0.0/IDT_Downloader_macOS.zip) |
+| **Android** | `IDT_Downloader_Android.apk` | ~8.2 MB | [Download APK](https://github.com/yusakukudo/idt-folder-downloader/releases/latest/download/IDT_Downloader_Android.apk) |
+| **Windows** | `IDT_Downloader_Windows.zip` | ~51.8 MB | [Download Windows (.zip with .exe)](https://github.com/yusakukudo/idt-folder-downloader/releases/latest/download/IDT_Downloader_Windows.zip) |
+| **macOS** | `IDT_Downloader_macOS.zip` | ~191 MB | [Download macOS (.app in .zip)](https://github.com/yusakukudo/idt-folder-downloader/releases/latest/download/IDT_Downloader_macOS.zip) |
 
 ---
 

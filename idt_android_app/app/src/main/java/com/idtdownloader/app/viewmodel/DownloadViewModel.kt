@@ -76,10 +76,10 @@ class DownloadViewModel(application: Application) : AndroidViewModel(application
 
             val crawler = IDTCrawler(rawUrl, downloadDir)
             val filesList = crawler.crawl { visited, count, lastFile ->
-                addLog("Scanning: $visited pages | Found $count files")
+                addLog("Scanning: $visited page(s) | Found $count file(s)")
             }
 
-            addLog("📦 Discovery complete: ${filesList.size} files found.")
+            addLog("📦 Discovery complete: ${filesList.size} file(s) found.")
 
             val initialMap = filesList.associate { item ->
                 item.savePath to FileUiState(item.fileName, "Waiting...", "Queued", 0)
@@ -88,7 +88,7 @@ class DownloadViewModel(application: Application) : AndroidViewModel(application
 
             if (filesList.isEmpty()) {
                 _isDownloading.value = false
-                addLog("✅ No audio files found.")
+                addLog("⚠️ No audio files found. Please ensure the link is an IDT audio folder.")
                 return@launch
             }
 
