@@ -1,6 +1,8 @@
 package com.idtdownloader.app.data
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -44,13 +46,13 @@ class IDTDownloader(private val concurrency: Int = 5) {
         val jobs = items.map { item ->
             async {
                 semaphore.withPermit {
-                    if (isCancelled.get()) return@async
+                    if (isCancelled.get()) return@withPermit
 
                     val file = File(item.savePath)
                     if (file.exists()) {
                         onFileProgress(item.savePath, file.length(), file.length(), "Skipped")
                         completedFiles++
-                        return@async
+                        return@withPermit
                     }
 
                     val tempFile = File(item.savePath + ".part")
@@ -83,7 +85,7 @@ class IDTDownloader(private val concurrency: Int = 5) {
                                     while (input.read(buffer).also { bytesRead = it } != -1) {
                                         if (isCancelled.get()) break
                                         while (isPaused.get()) {
-                                            delay(300)
+                                            Thread.sleep(300)
                                             if (isCancelled.get()) break
                                         }
 

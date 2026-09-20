@@ -5,7 +5,6 @@ import kotlinx.coroutines.withContext
 import org.jsoup.Jsoup
 import java.io.File
 import java.net.URLDecoder
-import java.net.URLEncoder
 
 data class DownloadTaskItem(
     val url: String,
@@ -65,7 +64,7 @@ class IDTCrawler(
                     crawlRecursive(fullUrl, newDir, onProgress)
                 }
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             // Skip broken links
         }
     }
@@ -84,13 +83,13 @@ class IDTCrawler(
 
     private fun getFolderName(link: String): String {
         val part = if (link.contains("f=")) link.substringAfter("f=") else link
-        val decoded = try { URLDecoder.decode(part, "UTF-8") } catch (_: Exception) { part }
+        val decoded = try { URLDecoder.decode(part, "UTF-8") } catch (e: Exception) { part }
         return decoded.trim('/').split('/').lastOrNull()?.replace("/", "_") ?: "IDT_Folder"
     }
 
     private fun getFileName(link: String): String {
         val name = link.split("/").lastOrNull() ?: "audio.mp3"
-        return try { URLDecoder.decode(name, "UTF-8") } catch (_: Exception) { name }
+        return try { URLDecoder.decode(name, "UTF-8") } catch (e: Exception) { name }
     }
 
     private fun resolveUrl(base: String, link: String): String {
